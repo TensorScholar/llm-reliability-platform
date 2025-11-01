@@ -33,6 +33,81 @@
              await conn.run_sync(Base.metadata.create_all)
              logger.info("timescale_tables_created")
 
+    async def create_hypertables(self) -> None:
+        async with self.engine.begin() as conn:
+            await conn.execute(
+                """
+                SELECT create_hypertable('capture_events','captured_at', if_not_exists => TRUE);
+                """
+            )
+            await conn.execute(
+                """
+                SELECT create_hypertable('validation_results','timestamp', if_not_exists => TRUE);
+                """
+            )
+            await conn.execute(
+                """
+                SELECT create_hypertable('drift_metrics','timestamp', if_not_exists => TRUE);
+                """
+            )
+            logger.info("timescale_hypertables_created")
+
+    async def setup_retention_policies(self) -> None:
+        async with self.engine.begin() as conn:
+            await conn.execute(
+                """
+                SELECT add_retention_policy('capture_events', INTERVAL '90 days', if_not_exists => TRUE);
+                """
+            )
+            await conn.execute(
+                """
+                SELECT add_retention_policy('validation_results', INTERVAL '180 days', if_not_exists => TRUE);
+                """
+            )
+            await conn.execute(
+                """
+                SELECT add_retention_policy('drift_metrics', INTERVAL '365 days', if_not_exists => TRUE);
+                """
+            )
+            logger.info("timescale_retention_policies_created")
+
+    async def setup_continuous_aggregates(self) -> None:
+        async with self.engine.begin() as conn:
+            await conn.execute(
+                """
+                CREATE MATERIALIZED VIEW IF NOT EXISTS capture_stats_hourly
+                WITH (timescaledb.continuous) AS
+                SELECT
+                    time_bucket('1 hour', captured_at) AS bucket,
+                    application_name,
+                    COUNT(*) as request_count,
+                    AVG(latency_ms) as avg_latency_ms,
+                    PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY latency_ms) as p95_latency_ms,
+                    AVG(tokens_total) as avg_tokens,
+                    SUM(cost_usd) as total_cost_usd
+                FROM capture_events
+                GROUP BY bucket, application_name
+                WITH NO DATA;
+                """
+            )
+            await conn.execute(
+                """
+                CREATE MATERIALIZED VIEW IF NOT EXISTS validation_stats_daily
+                WITH (timescaledb.continuous) AS
+                SELECT
+                    time_bucket('1 day', timestamp) AS bucket,
+                    invariant_id,
+                    COUNT(*) as total_validations,
+                    COUNT(*) FILTER (WHERE status = 'passed') as passed_count,
+                    COUNT(*) FILTER (WHERE status = 'failed') as failed_count,
+                    COUNT(*) FILTER (WHERE severity = 'critical') as critical_count
+                FROM validation_results
+                GROUP BY bucket, invariant_id
+                WITH NO DATA;
+                """
+            )
+            logger.info("timescale_continuous_aggregates_created")
+
      async def get_session(self) -> AsyncGenerator[AsyncSession, None]:
          async with self.session_factory() as session:
              try:
