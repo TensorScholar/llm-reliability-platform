@@ -12,7 +12,7 @@
  from ...infrastructure.database.timescale.connection import TimescaleDB
  from ...infrastructure.messaging.kafka_producer import KafkaProducerClient
  from .middleware import ErrorHandlingMiddleware, RequestLoggingMiddleware
-from .routes import health, ingest, metrics, query, invariants
+from .routes import health, ingest, metrics, query, invariants, alerts
 
 
  logger = structlog.get_logger()
@@ -68,6 +68,7 @@ from .routes import health, ingest, metrics, query, invariants
      app.include_router(query.router, prefix="/api/v1", tags=["query"])
     app.include_router(metrics.router, prefix="/api/v1", tags=["metrics"])
     app.include_router(invariants.router, prefix="/api/v1", tags=["invariants"])
+    app.include_router(alerts.router, prefix="/api/v1", tags=["alerts"])
 
      return app
 

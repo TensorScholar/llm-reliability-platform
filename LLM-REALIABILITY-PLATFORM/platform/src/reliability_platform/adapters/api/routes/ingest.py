@@ -60,3 +60,25 @@
          raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.post("/captures/batch")
+async def ingest_batch(
+    requests: List[IngestRequest], kafka: KafkaProducerClient = Depends(get_kafka_producer)
+) -> Dict[str, Any]:
+    if len(requests) > 1000:
+        raise HTTPException(status_code=400, detail="Batch size cannot exceed 1000 events")
+    success, failed, ids = 0, 0, []
+    for r in requests:
+        try:
+            payload = r.model_dump()
+            payload["id"] = r.request_id
+            ok = await kafka.send(KafkaTopics.CAPTURES_RAW, value=payload, key=r.application_name)
+            if ok:
+                success += 1
+                ids.append(r.request_id)
+            else:
+                failed += 1
+        except Exception:
+            failed += 1
+    return {"success": True, "total": len(requests), "succeeded": success, "failed": failed, "capture_ids": ids}
+
+
