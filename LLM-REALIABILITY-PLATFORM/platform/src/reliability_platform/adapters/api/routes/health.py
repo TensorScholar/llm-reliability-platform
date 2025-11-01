@@ -16,3 +16,8 @@
      return {"status": "ready"}
 
 
+@router.get("/health/live")
+async def live() -> dict[str, str]:
+    return {"status": "live"}
+
+
