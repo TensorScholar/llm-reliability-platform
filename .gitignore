@@ -1,0 +1,27 @@
+ # Python
+ __pycache__/
+ *.pyc
+ .pytest_cache/
+ .mypy_cache/
+ .ruff_cache/
+ .coverage
+ htmlcov/
+
+ # Envs
+ .venv/
+ venv/
+ .env
+
+ # MacOS
+ .DS_Store
+
+ # Node
+ node_modules/
+
+ # Poetry
+ poetry.lock
+
+ # Docker
+ *.log
+ dist/
+
