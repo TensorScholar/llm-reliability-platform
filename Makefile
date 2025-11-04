@@ -1,4 +1,4 @@
- .PHONY: help install test lint format check docker-build docker-up docker-down docker-logs docker-clean api run-sdk quickstart
+.PHONY: help install test lint format docker-build docker-up docker-down docker-logs docker-clean api quickstart
 
  help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -6,6 +6,15 @@
  install: ## Install platform and SDK dependencies
 	cd LLM-REALIABILITY-PLATFORM/platform && poetry install
 	cd LLM-REALIABILITY-PLATFORM/sdk/python && poetry install
+
+test: ## Run all tests
+	cd LLM-REALIABILITY-PLATFORM/platform && poetry run pytest -q
+
+lint: ## Run linters (Ruff + MyPy)
+	cd LLM-REALIABILITY-PLATFORM/platform && poetry run ruff check . && poetry run mypy src
+
+format: ## Auto-format with Ruff
+	cd LLM-REALIABILITY-PLATFORM/platform && poetry run ruff check --fix .
 
  api: ## Run API locally with reload
 	cd LLM-REALIABILITY-PLATFORM/platform && uvicorn reliability_platform.main:app --host 0.0.0.0 --port 8000 --reload

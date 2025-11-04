@@ -79,6 +79,22 @@
        - ./LLM-REALIABILITY-PLATFORM/platform/src:/app/src
      command: uvicorn reliability_platform.main:app --host 0.0.0.0 --port 8000 --reload
 
+   prometheus:
+     image: prom/prometheus:latest
+     depends_on:
+       - platform-api
+     ports:
+       - "9090:9090"
+     volumes:
+       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+     command:
+       - --config.file=/etc/prometheus/prometheus.yml
+     healthcheck:
+       test: ["CMD", "wget", "-qO-", "http://localhost:9090/-/ready"]
+       interval: 10s
+       timeout: 5s
+       retries: 5
+
  volumes:
    timescale_data:
    redis_data:

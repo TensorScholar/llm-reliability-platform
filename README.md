@@ -28,7 +28,6 @@ Build an enterprise-grade production monitoring platform for LLM applications th
 - Detect quality degradation within 5 minutes
 - Reduce production incidents by 80%
 - Provide ROI visibility through cost-impact correlation
-
 ---
 
 ## PART 1: ARCHITECTURAL FOUNDATION
@@ -51,6 +50,33 @@ Architecture Diagram (Conceptual)
 ┌─────────────────────────────────────────────────────────────┐
 │  CLIENT APPLICATIONS (Python/Node.js/Java)                  │
 │  ┌──────────────────────────────────────┐                  │
+## Quick start
+
+Prerequisites:
+- Python 3.11
+- Docker + Docker Compose
+- Poetry 1.7+
+
+Setup and run locally:
+
+1. Install dependencies
+   - Platform and SDK
+     - `make install`
+
+2. Start local infra and API (TimescaleDB, Kafka, Redis, API)
+   - `make quickstart`
+   - API docs: http://localhost:8000/docs
+
+3. Run checks
+   - Lint: `make lint`
+   - Format: `make format`
+   - Tests: `make test`
+
+4. Bring full stack up (including Prometheus if configured)
+   - `make docker-up`
+
+To configure environment variables, copy `.env.example` to `.env` and edit values.
+
 │  │  LLM Reliability SDK (Lightweight)   │                  │
 │  │  • Async capture (non-blocking)      │                  │
 │  │  • Intelligent sampling              │                  │
@@ -241,7 +267,6 @@ llm-reliability-platform/
 │
 ├── platform/
 │   ├── src/
-│   ├── tests/
 │   ├── migrations/
 │   └── pyproject.toml
 │
