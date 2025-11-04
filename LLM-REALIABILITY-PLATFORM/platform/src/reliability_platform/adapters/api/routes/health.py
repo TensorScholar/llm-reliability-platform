@@ -1,19 +1,19 @@
- from __future__ import annotations
+from __future__ import annotations
 
- from fastapi import APIRouter
-
-
- router = APIRouter()
+from fastapi import APIRouter
 
 
- @router.get("/health")
- async def health() -> dict[str, str]:
-     return {"status": "ok"}
+router = APIRouter()
 
 
- @router.get("/health/ready")
- async def ready() -> dict[str, str]:
-     return {"status": "ready"}
+@router.get("/health")
+async def health() -> dict[str, str]:
+    return {"status": "ok"}
+
+
+@router.get("/health/ready")
+async def ready() -> dict[str, str]:
+    return {"status": "ready"}
 
 
 @router.get("/health/live")
